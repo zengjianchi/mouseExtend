@@ -138,7 +138,7 @@ public struct SettingsView: View {
                 // Section 2: Switch Left Card
                 directionCard(
                     direction: .left,
-                    title: "向左切屏 (上一空间 / 四指向左滑)",
+                    title: "向左切屏 (上一空间 / 触控板四指向右划)",
                     icon: "arrow.left.circle.fill",
                     color: .blue,
                     currentButtonNumber: config.leftButton,
@@ -148,7 +148,7 @@ public struct SettingsView: View {
                 // Section 3: Switch Right Card
                 directionCard(
                     direction: .right,
-                    title: "向右切屏 (下一空间 / 四指向右滑)",
+                    title: "向右切屏 (下一空间 / 触控板四指向左划)",
                     icon: "arrow.right.circle.fill",
                     color: .purple,
                     currentButtonNumber: config.rightButton,

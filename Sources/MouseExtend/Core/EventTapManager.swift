@@ -148,11 +148,11 @@ public final class EventTapManager: ObservableObject {
         var actionName: String? = nil
         if btnNum == config.leftButton {
             KeySender.shared.switchLeft()
-            actionName = "向左切屏 (上一空间)"
+            actionName = "向左切屏 (上一空间 / 触控板向右)"
             activeBoundButtons.insert(btnNum)
         } else if btnNum == config.rightButton {
             KeySender.shared.switchRight()
-            actionName = "向右切屏 (下一空间)"
+            actionName = "向右切屏 (下一空间 / 触控板向左)"
             activeBoundButtons.insert(btnNum)
         }
         
