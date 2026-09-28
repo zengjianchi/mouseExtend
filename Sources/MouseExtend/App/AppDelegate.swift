@@ -57,6 +57,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             .store(in: &cancellables)
+            
+        LaunchAtLoginManager.shared.$isLaunchAtLoginEnabled
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.updateMenu() }
+            .store(in: &cancellables)
     }
     
     private func updateMenu() {
@@ -100,6 +105,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         
         menu.addItem(NSMenuItem.separator())
         
+        // Launch at Login
+        let isLaunchAtLogin = LaunchAtLoginManager.shared.isLaunchAtLoginEnabled
+        let launchItem = NSMenuItem(title: "开机自动启动", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
+        launchItem.state = isLaunchAtLogin ? .on : .off
+        launchItem.target = self
+        menu.addItem(launchItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
         // Quit
         let quitItem = NSMenuItem(title: "退出 MouseExtend", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
@@ -113,18 +127,24 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         updateMenu()
     }
     
+    @objc public func toggleLaunchAtLogin() {
+        let mgr = LaunchAtLoginManager.shared
+        mgr.setEnabled(!mgr.isLaunchAtLoginEnabled)
+        updateMenu()
+    }
+    
     @objc public func promptPermission() {
         PermissionManager.shared.promptForPermission()
     }
     
     @objc public func openSettingsWindow() {
-        if let iconImage = NSImage(named: "AppIcon") {
-            NSApp.applicationIconImage = iconImage
+        if let icon = Bundle.main.url(forResource: "AppIcon", withExtension: "icns").flatMap({ NSImage(contentsOf: $0) }) {
+            NSApp.applicationIconImage = icon
         }
         
         if settingsWindow == nil {
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 490, height: 530),
+                contentRect: NSRect(x: 0, y: 0, width: 490, height: 570),
                 styleMask: [.titled, .closable, .miniaturizable],
                 backing: .buffered,
                 defer: false

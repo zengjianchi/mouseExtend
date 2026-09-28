@@ -5,6 +5,7 @@ public struct SettingsView: View {
     @ObservedObject var eventTap = EventTapManager.shared
     @ObservedObject var permissionManager = PermissionManager.shared
     @ObservedObject var deviceManager = MouseDeviceManager.shared
+    @ObservedObject var launchManager = LaunchAtLoginManager.shared
     
     public init() {}
     
@@ -211,7 +212,54 @@ public struct SettingsView: View {
                 .background(Color(NSColor.controlBackgroundColor))
                 .cornerRadius(10)
                 
-                // Section 5: Bottom Bar: Permissions & Reset
+                // Section 5: Launch at Login Option
+                HStack(spacing: 10) {
+                    Image(systemName: "sparkles")
+                        .foregroundColor(.blue)
+                        .font(.title3)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            Text("开机自动启动")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                            if launchManager.isLaunchAtLoginEnabled {
+                                Text("已开启")
+                                    .font(.system(size: 9))
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue.opacity(0.15))
+                                    .foregroundColor(.blue)
+                                    .cornerRadius(4)
+                            }
+                        }
+                        Text("登录系统后自动在后台静默运行，无需每次手动打开")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    if launchManager.requiresApproval {
+                        Button("系统设置允许") {
+                            launchManager.openSystemSettings()
+                        }
+                        .font(.caption2)
+                        .buttonStyle(.borderedProminent)
+                    }
+                    
+                    Toggle("", isOn: Binding(
+                        get: { launchManager.isLaunchAtLoginEnabled },
+                        set: { launchManager.setEnabled($0) }
+                    ))
+                    .toggleStyle(SwitchToggleStyle(tint: .blue))
+                    .scaleEffect(0.8)
+                }
+                .padding(10)
+                .background(Color(NSColor.controlBackgroundColor))
+                .cornerRadius(10)
+                
+                // Section 6: Bottom Bar: Permissions & Reset
                 if !permissionManager.isAccessibilityGranted {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
@@ -287,7 +335,7 @@ public struct SettingsView: View {
             }
             .padding(16)
         }
-        .frame(width: 490, height: 530)
+        .frame(width: 490, height: 570)
     }
     
     @ViewBuilder
