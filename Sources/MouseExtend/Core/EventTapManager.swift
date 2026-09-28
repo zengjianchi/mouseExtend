@@ -29,7 +29,8 @@ public final class EventTapManager: ObservableObject {
                         (1 << CGEventType.rightMouseDown.rawValue) |
                         (1 << CGEventType.otherMouseDown.rawValue) |
                         (1 << CGEventType.otherMouseUp.rawValue) |
-                        (1 << CGEventType.rightMouseUp.rawValue)
+                        (1 << CGEventType.rightMouseUp.rawValue) |
+                        (1 << CGEventType.scrollWheel.rawValue)
         
         let callback: CGEventTapCallBack = { proxy, type, event, refcon in
             guard let refcon = refcon else { return Unmanaged.passUnretained(event) }
@@ -91,6 +92,23 @@ public final class EventTapManager: ObservableObject {
         }
         
         let config = AppConfig.shared
+        
+        // 0. Handle Mouse Scroll Wheel Direction (Per-device Natural vs. Traditional Inverted)
+        if type == .scrollWheel {
+            let isContinuous = event.getIntegerValueField(.scrollWheelEventIsContinuous) != 0
+            if !isContinuous && MouseDeviceManager.shared.currentActiveScrollDirection == .traditional {
+                let deltaY = event.getIntegerValueField(.scrollWheelEventDeltaAxis1)
+                let pointDeltaY = event.getIntegerValueField(.scrollWheelEventPointDeltaAxis1)
+                let fixedPtDeltaY = event.getIntegerValueField(.scrollWheelEventFixedPtDeltaAxis1)
+                
+                event.setIntegerValueField(.scrollWheelEventDeltaAxis1, value: -deltaY)
+                event.setIntegerValueField(.scrollWheelEventPointDeltaAxis1, value: -pointDeltaY)
+                if fixedPtDeltaY != 0 {
+                    event.setIntegerValueField(.scrollWheelEventFixedPtDeltaAxis1, value: -fixedPtDeltaY)
+                }
+            }
+            return Unmanaged.passUnretained(event)
+        }
         
         // Extract button number
         let btnNum: Int

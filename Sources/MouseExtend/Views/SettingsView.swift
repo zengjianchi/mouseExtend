@@ -4,158 +4,272 @@ public struct SettingsView: View {
     @ObservedObject var config = AppConfig.shared
     @ObservedObject var eventTap = EventTapManager.shared
     @ObservedObject var permissionManager = PermissionManager.shared
+    @ObservedObject var deviceManager = MouseDeviceManager.shared
     
     public init() {}
     
     public var body: some View {
-        VStack(spacing: 16) {
-            // Header Bar
-            HStack(spacing: 12) {
-                Image(systemName: "arrow.left.and.right.square.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(.blue)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("MouseExtend")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                    Text("鼠标左右快速切屏小工具")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                // Master Enable Toggle Pill
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(config.isEnabled && permissionManager.isAccessibilityGranted ? Color.green : Color.red)
-                        .frame(width: 8, height: 8)
-                    Text(config.isEnabled ? (permissionManager.isAccessibilityGranted ? "运行中" : "未授权") : "已暂停")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                    Toggle("", isOn: $config.isEnabled)
-                        .toggleStyle(SwitchToggleStyle(tint: .green))
-                        .scaleEffect(0.75)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(Color(NSColor.controlBackgroundColor))
-                .cornerRadius(16)
-            }
-            .padding(.horizontal, 4)
-            
-            // Switch Left Card
-            directionCard(
-                direction: .left,
-                title: "向左切屏 (上一空间 / 四指向左滑)",
-                icon: "arrow.left.circle.fill",
-                color: .blue,
-                currentButtonNumber: config.leftButton,
-                currentButtonName: config.leftButtonName
-            )
-            
-            // Switch Right Card
-            directionCard(
-                direction: .right,
-                title: "向右切屏 (下一空间 / 四指向右滑)",
-                icon: "arrow.right.circle.fill",
-                color: .purple,
-                currentButtonNumber: config.rightButton,
-                currentButtonName: config.rightButtonName
-            )
-            
-            // Live Test Area
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: "target")
-                        .foregroundColor(.indigo)
-                    Text("实时按键映射测试")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondary)
-                }
-                
-                HStack {
-                    if let test = eventTap.lastTestInfo {
-                        Circle()
-                            .fill(test.triggeredAction != nil ? Color.green : Color.gray)
-                            .frame(width: 8, height: 8)
-                        
-                        Text("捕获按键：\(test.buttonName)")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                        
-                        Spacer()
-                        
-                        if let action = test.triggeredAction {
-                            HStack(spacing: 4) {
-                                Text("生效 ➔")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                Text(action)
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.green)
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(Color.green.opacity(0.12))
-                            .cornerRadius(4)
-                        } else {
-                            Text("未映射 (普通按键)")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
+        ScrollView {
+            VStack(spacing: 14) {
+                // Header Bar
+                HStack(spacing: 12) {
+                    let appIcon: NSImage = {
+                        if let url = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"), let img = NSImage(contentsOf: url) {
+                            return img
                         }
-                    } else {
-                        Text("在鼠标上按下任意按键，可在此原地测试并检验切屏效果。")
+                        return NSWorkspace.shared.icon(forFile: Bundle.main.bundlePath)
+                    }()
+                    Image(nsImage: appIcon)
+                        .resizable()
+                        .frame(width: 38, height: 38)
+                        .cornerRadius(8)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("MouseExtend")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                        Text("鼠标快速切屏与专属滚轮方向工具")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                }
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(NSColor.textBackgroundColor))
-                .cornerRadius(8)
-            }
-            .padding(10)
-            .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(10)
-            
-            // Bottom Bar: Permissions & Reset
-            if !permissionManager.isAccessibilityGranted {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Label("需辅助功能授权 (Accessibility)", systemImage: "exclamationmark.triangle.fill")
+                    
+                    Spacer()
+                    
+                    // Master Enable Toggle Pill
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(config.isEnabled && permissionManager.isAccessibilityGranted ? Color.green : Color.red)
+                            .frame(width: 8, height: 8)
+                        Text(config.isEnabled ? (permissionManager.isAccessibilityGranted ? "运行中" : "未授权") : "已暂停")
                             .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.red)
-                        Spacer()
+                            .fontWeight(.medium)
+                        Toggle("", isOn: $config.isEnabled)
+                            .toggleStyle(SwitchToggleStyle(tint: .green))
+                            .scaleEffect(0.75)
                     }
-                    
-                    Text("由于刚刚更新过代码，若系统列表中已有旧的 MouseExtend，请选中并按【-】减号删除，然后点击右侧按钮重新添加。")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                        .lineSpacing(2)
-                    
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color(NSColor.controlBackgroundColor))
+                    .cornerRadius(16)
+                }
+                .padding(.horizontal, 4)
+                
+                // Section 1: Mouse Recognition & Scroll Wheel Direction
+                VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
-                        Button(action: {
-                            permissionManager.promptForPermission()
-                        }) {
-                            Text("1. 打开系统设置")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.red)
+                        Image(systemName: "computermouse.fill")
+                            .font(.subheadline)
+                            .foregroundColor(.teal)
+                        Text("已识别鼠标与滚轮方向")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                        
+                        Spacer()
                         
                         Button(action: {
-                            permissionManager.revealInFinder()
+                            deviceManager.refreshDevices()
                         }) {
-                            Text("2. 在访达中定位 (拖入设置)")
+                            Image(systemName: "arrow.clockwise")
                                 .font(.caption)
+                                .foregroundColor(.secondary)
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(PlainButtonStyle())
+                        .help("重新检测已连接的鼠标")
+                    }
+                    
+                    if deviceManager.recognizedMice.isEmpty {
+                        HStack(spacing: 8) {
+                            Image(systemName: "antenna.radiowaves.left.and.right")
+                                .foregroundColor(.secondary)
+                            Text("未检测到外接鼠标，插入 USB 或连接蓝牙鼠标后将自动识别。")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(NSColor.textBackgroundColor))
+                        .cornerRadius(8)
+                    } else {
+                        ForEach(deviceManager.recognizedMice) { mouse in
+                            HStack(spacing: 10) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 6) {
+                                        Text(mouse.name)
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                        Text(mouse.transport.isEmpty ? "外接设备" : mouse.transport)
+                                            .font(.system(size: 9))
+                                            .padding(.horizontal, 5)
+                                            .padding(.vertical, 2)
+                                            .background(Color.teal.opacity(0.15))
+                                            .foregroundColor(.teal)
+                                            .cornerRadius(4)
+                                    }
+                                    Text("专属滚轮设置已保存，下次连接自动生效无需再调")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Picker("", selection: Binding(
+                                    get: { mouse.scrollDirection },
+                                    set: { newDir in
+                                        deviceManager.setScrollDirection(newDir, for: mouse.id)
+                                    }
+                                )) {
+                                    ForEach(MouseScrollDirection.allCases) { dir in
+                                        Text(dir.title).tag(dir)
+                                    }
+                                }
+                                .frame(width: 170)
+                            }
+                            .padding(10)
+                            .background(Color(NSColor.textBackgroundColor))
+                            .cornerRadius(8)
+                        }
+                    }
+                }
+                .padding(12)
+                .background(Color(NSColor.controlBackgroundColor))
+                .cornerRadius(10)
+                
+                // Section 2: Switch Left Card
+                directionCard(
+                    direction: .left,
+                    title: "向左切屏 (上一空间 / 四指向左滑)",
+                    icon: "arrow.left.circle.fill",
+                    color: .blue,
+                    currentButtonNumber: config.leftButton,
+                    currentButtonName: config.leftButtonName
+                )
+                
+                // Section 3: Switch Right Card
+                directionCard(
+                    direction: .right,
+                    title: "向右切屏 (下一空间 / 四指向右滑)",
+                    icon: "arrow.right.circle.fill",
+                    color: .purple,
+                    currentButtonNumber: config.rightButton,
+                    currentButtonName: config.rightButtonName
+                )
+                
+                // Section 4: Live Test Area
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "target")
+                            .foregroundColor(.indigo)
+                        Text("实时按键映射测试")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        if let test = eventTap.lastTestInfo {
+                            Circle()
+                                .fill(test.triggeredAction != nil ? Color.green : Color.gray)
+                                .frame(width: 8, height: 8)
+                            
+                            Text("捕获按键：\(test.buttonName)")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                            
+                            Spacer()
+                            
+                            if let action = test.triggeredAction {
+                                HStack(spacing: 4) {
+                                    Text("生效 ➔")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                    Text(action)
+                                        .font(.caption)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Color.green.opacity(0.12))
+                                .cornerRadius(4)
+                            } else {
+                                Text("未映射 (普通按键)")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            Text("在鼠标上按下任意按键，可在此原地测试并检验切屏效果。")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(NSColor.textBackgroundColor))
+                    .cornerRadius(8)
+                }
+                .padding(10)
+                .background(Color(NSColor.controlBackgroundColor))
+                .cornerRadius(10)
+                
+                // Section 5: Bottom Bar: Permissions & Reset
+                if !permissionManager.isAccessibilityGranted {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Label("需辅助功能授权 (Accessibility)", systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.red)
+                            Spacer()
+                        }
+                        
+                        Text("由于更新过代码，若系统列表中已有旧项，请在系统设置中选中按【-】删除，再重新添加。")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .lineSpacing(2)
+                        
+                        HStack(spacing: 8) {
+                            Button(action: {
+                                permissionManager.promptForPermission()
+                            }) {
+                                Text("1. 打开系统设置")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.red)
+                            
+                            Button(action: {
+                                permissionManager.revealInFinder()
+                            }) {
+                                Text("2. 在访达中定位")
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.bordered)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                config.resetToDefaults()
+                                eventTap.cancelRecording()
+                            }) {
+                                Text("恢复默认")
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                    .padding(10)
+                    .background(Color.red.opacity(0.08))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.red.opacity(0.25), lineWidth: 1)
+                    )
+                } else {
+                    HStack {
+                        Label("系统辅助功能已就绪", systemImage: "checkmark.shield.fill")
+                            .font(.caption)
+                            .foregroundColor(.green)
                         
                         Spacer()
                         
@@ -163,43 +277,17 @@ public struct SettingsView: View {
                             config.resetToDefaults()
                             eventTap.cancelRecording()
                         }) {
-                            Text("恢复默认")
+                            Text("恢复默认键位 (侧键4/5)")
                                 .font(.caption)
                         }
                         .buttonStyle(.bordered)
                     }
+                    .padding(.horizontal, 4)
                 }
-                .padding(10)
-                .background(Color.red.opacity(0.08))
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.red.opacity(0.25), lineWidth: 1)
-                )
-            } else {
-                HStack {
-                    Label("系统辅助功能已就绪", systemImage: "checkmark.shield.fill")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        config.resetToDefaults()
-                        eventTap.cancelRecording()
-                    }) {
-                        Text("恢复默认 (侧键4/5)")
-                            .font(.caption)
-                    }
-                    .buttonStyle(.bordered)
-                }
-                .padding(.horizontal, 4)
             }
-            
-            Spacer()
+            .padding(16)
         }
-        .padding(18)
-        .frame(width: 470, height: 370)
+        .frame(width: 490, height: 530)
     }
     
     @ViewBuilder

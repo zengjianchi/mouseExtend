@@ -10,17 +10,26 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         
+        if let icon = Bundle.main.url(forResource: "AppIcon", withExtension: "icns").flatMap({ NSImage(contentsOf: $0) }) {
+            NSApp.applicationIconImage = icon
+        }
+        
         setupStatusBar()
         bindObservables()
         
         if !PermissionManager.shared.checkPermission() {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 PermissionManager.shared.promptForPermission()
-                self.openSettingsWindow()
             }
         }
         
+        openSettingsWindow()
         EventTapManager.shared.start()
+    }
+    
+    public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        openSettingsWindow()
+        return true
     }
     
     private func setupStatusBar() {
@@ -109,14 +118,18 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc public func openSettingsWindow() {
+        if let iconImage = NSImage(named: "AppIcon") {
+            NSApp.applicationIconImage = iconImage
+        }
+        
         if settingsWindow == nil {
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 470, height: 370),
+                contentRect: NSRect(x: 0, y: 0, width: 490, height: 530),
                 styleMask: [.titled, .closable, .miniaturizable],
                 backing: .buffered,
                 defer: false
             )
-            window.title = "MouseExtend - 左右切屏按键设置"
+            window.title = "MouseExtend - 鼠标切屏与滚轮设置"
             window.center()
             window.isReleasedWhenClosed = false
             window.contentView = NSHostingView(rootView: SettingsView())
