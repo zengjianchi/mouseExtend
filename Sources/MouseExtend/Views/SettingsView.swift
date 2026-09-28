@@ -325,7 +325,7 @@ public struct SettingsView: View {
                             config.resetToDefaults()
                             eventTap.cancelRecording()
                         }) {
-                            Text("恢复默认键位 (侧键4/5)")
+                            Text("恢复默认键位")
                                 .font(.caption)
                         }
                         .buttonStyle(.bordered)

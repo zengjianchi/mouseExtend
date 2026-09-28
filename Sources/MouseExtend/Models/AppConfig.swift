@@ -35,12 +35,12 @@ public class AppConfig: ObservableObject {
         let defaults = UserDefaults.standard
         self.isEnabled = defaults.object(forKey: "isEnabled") as? Bool ?? true
         
-        // Defaults: Button 4 (CGEvent 3) = Switch Left, Button 5 (CGEvent 4) = Switch Right
-        self.leftButton = defaults.object(forKey: "leftButton") as? Int ?? 3
-        self.leftButtonName = defaults.string(forKey: "leftButtonName") ?? "按键 4 (侧键后退 Back)"
+        // Defaults: Button 5 (CGEvent 4) = Switch Left, Button 4 (CGEvent 3) = Switch Right
+        self.leftButton = defaults.object(forKey: "leftButton") as? Int ?? 4
+        self.leftButtonName = defaults.string(forKey: "leftButtonName") ?? "按键 5 (侧键前进 Forward)"
         
-        self.rightButton = defaults.object(forKey: "rightButton") as? Int ?? 4
-        self.rightButtonName = defaults.string(forKey: "rightButtonName") ?? "按键 5 (侧键前进 Forward)"
+        self.rightButton = defaults.object(forKey: "rightButton") as? Int ?? 3
+        self.rightButtonName = defaults.string(forKey: "rightButtonName") ?? "按键 4 (侧键后退 Back)"
     }
     
     public func setBinding(direction: SwitchDirection, buttonNumber: Int, buttonName: String) {
@@ -63,9 +63,9 @@ public class AppConfig: ObservableObject {
     
     public func resetToDefaults() {
         isEnabled = true
-        leftButton = 3
-        leftButtonName = "按键 4 (侧键后退 Back)"
-        rightButton = 4
-        rightButtonName = "按键 5 (侧键前进 Forward)"
+        leftButton = 4
+        leftButtonName = "按键 5 (侧键前进 Forward)"
+        rightButton = 3
+        rightButtonName = "按键 4 (侧键后退 Back)"
     }
 }
