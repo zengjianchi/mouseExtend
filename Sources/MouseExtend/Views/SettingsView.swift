@@ -138,17 +138,40 @@ public struct SettingsView: View {
                 // Section 2: Switch Left Card
                 directionCard(
                     direction: .left,
-                    title: "向左切屏 (上一空间 / 触控板四指向右划)",
+                    title: "向左滑动切屏",
+                    subtitle: "切换到左侧桌面空间 (桌面 1 ⬅︎ 2)",
                     icon: "arrow.left.circle.fill",
                     color: .blue,
                     currentButtonNumber: config.leftButton,
                     currentButtonName: config.leftButtonName
                 )
                 
+                // Quick Swap Buttons Row
+                HStack(spacing: 12) {
+                    Rectangle()
+                        .fill(Color.secondary.opacity(0.2))
+                        .frame(height: 1)
+                    
+                    Button(action: {
+                        config.swapBindings()
+                    }) {
+                        Label("对调左右切屏按键", systemImage: "arrow.up.arrow.down")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .buttonStyle(.bordered)
+                    .help("一键互换向左和向右绑定的鼠标按键")
+                    
+                    Rectangle()
+                        .fill(Color.secondary.opacity(0.2))
+                        .frame(height: 1)
+                }
+                .padding(.vertical, 2)
+                
                 // Section 3: Switch Right Card
                 directionCard(
                     direction: .right,
-                    title: "向右切屏 (下一空间 / 触控板四指向左划)",
+                    title: "向右滑动切屏",
+                    subtitle: "切换到右侧桌面空间 (桌面 2 ➔ 3)",
                     icon: "arrow.right.circle.fill",
                     color: .purple,
                     currentButtonNumber: config.rightButton,
@@ -335,13 +358,14 @@ public struct SettingsView: View {
             }
             .padding(16)
         }
-        .frame(width: 490, height: 570)
+        .frame(width: 490, height: 590)
     }
     
     @ViewBuilder
     private func directionCard(
         direction: SwitchDirection,
         title: String,
+        subtitle: String,
         icon: String,
         color: Color,
         currentButtonNumber: Int,
@@ -356,9 +380,14 @@ public struct SettingsView: View {
                     .font(.title3)
                     .foregroundColor(color)
                 
-                Text(title)
-                    .font(.headline)
-                    .fontWeight(.bold)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.headline)
+                        .fontWeight(.bold)
+                    Text(subtitle)
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                }
                 
                 Spacer()
             }
@@ -393,9 +422,10 @@ public struct SettingsView: View {
                 } else {
                     // Normal Display State
                     HStack(spacing: 6) {
-                        Image(systemName: "computermouse.fill")
+                        Image(systemName: isBound ? "checkmark.circle.fill" : "exclamationmark.circle")
                             .font(.caption)
-                        Text(isBound ? currentButtonName : "未设置")
+                            .foregroundColor(isBound ? color : .secondary)
+                        Text(isBound ? "已绑定: \(currentButtonName)" : "未绑定按键")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                     }
@@ -423,7 +453,7 @@ public struct SettingsView: View {
                         Button(action: {
                             eventTap.startRecording(direction: direction)
                         }) {
-                            Label(isBound ? "重新去绑定" : "去绑定按键", systemImage: "record.circle")
+                            Label(isBound ? "修改绑定" : "点击绑定按键", systemImage: "record.circle")
                                 .font(.caption)
                                 .fontWeight(.medium)
                         }
